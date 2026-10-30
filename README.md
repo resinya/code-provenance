@@ -9,6 +9,29 @@
 支持 VS Code、VS Code Insiders、Cursor、TRAE（国际版 / 国内版）和 IntelliJ IDEA。
 浏览器注入面板可直接切换编辑器；npm 接入通过 `editor` 属性选择。
 
+## 致谢与灵感来源
+
+本项目的核心思路——在浏览器中点击 React 组件并在编辑器中打开源码——
+借鉴自 [ericclemmons/click-to-component](https://github.com/ericclemmons/click-to-component)
+（npm 包名 `click-to-react-component`）。
+
+原项目通过读取 React Fiber 上的 `_debugSource` 实现了一键跳转源码，
+本项目在此基础上进行了二次魔改：将核心包从 JavaScript 迁移到 TypeScript，
+扩展了编辑器支持与 React 版本适配，并新增了浏览器临注入工具等能力。
+感谢原作者 [Eric Clemmons](https://github.com/ericclemmons) 及所有贡献者的工作。
+
+## 相比原项目的改进
+
+| 改进点 | 说明 |
+| --- | --- |
+| TypeScript 重写 | 核心包由 JavaScript 迁移到 TypeScript，附带完整类型声明 |
+| React 19 / Next 16 支持 | 通过解析 `_debugStack` 调用栈，配合 source map 与 Next 开发接口 `/__nextjs_original-stack-frames` 还原服务端组件源码 |
+| 多编辑器支持 | VS Code / VS Code Insiders / Cursor / TRAE（国际版 / 国内版）/ IntelliJ IDEA |
+| 浏览器临注入工具 | `apps/browser-inspector` 打包为独立脚本，通过 DevTools Snippet 注入任意页面，目标项目无需改任何代码 |
+| 路径映射 | `projectRoot` / `projectName` / `pathModifier`，适配 IDEA 相对路径与容器/远程路径映射 |
+| 浮层面板 | 浏览器注入方式提供可视化面板：开始/结束选择、编辑器切换、状态提示 |
+| 热更新安全 | 源码解析请求去重 + 操作序号失效机制，避免热更新后沿用旧行号 |
+
 ## 两种使用方式
 
 ### 方式一：作为 npm 包集成到项目中

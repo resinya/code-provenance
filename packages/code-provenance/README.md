@@ -211,3 +211,11 @@ pnpm start
 cd apps/next
 pnpm dev
 ```
+
+## 致谢
+
+本包的核心思路借鉴自
+[ericclemmons/click-to-component](https://github.com/ericclemmons/click-to-component)
+（npm 包名 `click-to-react-component`），在此基础上进行了 TypeScript 迁移、
+React 19 / Next 16 适配、多编辑器支持与路径映射等扩展。
+感谢原作者 [Eric Clemmons](https://github.com/ericclemmons) 及所有贡献者。
