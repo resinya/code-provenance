@@ -2,6 +2,17 @@
   <img src="./assets/logo-wordmark.png" alt="code-provenance — 点击页面，追溯源码" width="640" />
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/VS_Code-007ACC?logo=visualstudiocode&logoColor=white" alt="VS Code" />
+  <img src="https://img.shields.io/badge/Cursor-000000?logo=cursor&logoColor=white" alt="Cursor" />
+  <img src="https://img.shields.io/badge/TRAE-1f6feb?logo=trae&logoColor=white" alt="TRAE" />
+  <img src="https://img.shields.io/badge/IntelliJ_IDEA-000000?logo=intellijidea&logoColor=white" alt="IntelliJ IDEA" />
+  <img src="https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/源码定位-dev%20tooling-8b5cf6" alt="源码定位" />
+</p>
+
 # code-provenance
 
 在浏览器中 <kbd>Option+Click</kbd> 页面上的 React 组件，直接在编辑器中打开对应的源码文件。
