@@ -1,0 +1,19 @@
+{
+  "name": "@code-provenance/browser-inspector",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "serve": "node serve.mjs",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "code-provenance": "workspace:*",
+    "react": "18.1.0",
+    "react-dom": "18.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.27.2",
+    "jsdom": "16.7.0"
+  }
+}

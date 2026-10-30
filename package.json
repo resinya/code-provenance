@@ -1,0 +1,18 @@
+{
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "build": "turbo run build --filter=code-provenance",
+    "inspector:build": "pnpm build && pnpm --filter @code-provenance/browser-inspector build",
+    "inspector:serve": "pnpm build && pnpm --filter @code-provenance/browser-inspector serve",
+    "inspector:test": "pnpm build && pnpm --filter @code-provenance/browser-inspector test",
+    "env": "env",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint --filter=code-provenance"
+  },
+  "devDependencies": {
+    "eslint": "8.13.0",
+    "turbo": "^1.2.16"
+  },
+  "packageManager": "pnpm@10.17.1"
+}

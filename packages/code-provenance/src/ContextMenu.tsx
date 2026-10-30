@@ -1,0 +1,424 @@
+import {
+  arrow,
+  autoUpdate,
+  flip,
+  FloatingFocusManager,
+  FloatingOverlay,
+  offset,
+  shift,
+  useDismiss,
+  useFloating,
+  useInteractions,
+  useListNavigation,
+  useRole,
+} from '@floating-ui/react-dom-interactions'
+import * as React from 'react'
+
+import { getDisplayNameForInstance } from './getDisplayNameFromReactInstance.js'
+import { getPathToSource } from './getPathToSource.js'
+import { getPropsForInstance } from './getPropsForInstance.js'
+import { getReactInstancesForElement } from './getReactInstancesForElement.js'
+import type { ContextMenuProps, SourceLocation } from './types.js'
+
+/** 合并多个 ref 到同一个回调（替代 react-merge-refs，避免 CJS/ESM 互操作问题） */
+function mergeRefs<T>(
+  refs: Array<React.Ref<T> | null | undefined>,
+): React.RefCallback<T> {
+  return (value) => {
+    for (const ref of refs) {
+      if (typeof ref === 'function') ref(value)
+      else if (ref) (ref as React.MutableRefObject<T | null>).current = value
+    }
+  }
+}
+
+/** 右键菜单与遮罩的样式；用 data 属性隔离，避免被页面全局样式污染 */
+const contextMenuStyle = `
+[data-code-provenance-overlay] {
+  z-index: 2147483647;
+}
+
+[data-code-provenance-contextmenu],
+[data-code-provenance-contextmenu] * {
+  box-sizing: border-box !important;
+}
+
+[data-code-provenance-contextmenu] {
+  all: unset;
+  outline: 0;
+  background: white;
+  color: black;
+  font-weight: bold;
+  overflow: visible;
+  padding: 5px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: none;
+
+  --shadow-color: 0deg 0% 0%;
+  --shadow-elevation-low: 0px -1px 0.8px hsl(var(--shadow-color) / 0.1),
+    0px -1.2px 0.9px -2.5px hsl(var(--shadow-color) / 0.07),
+    0px -3px 2.3px -5px hsl(var(--shadow-color) / 0.03);
+
+  --shadow-elevation-medium: 0px 1px 0.8px hsl(var(--shadow-color) / 0.11),
+    0px 1.5px 1.1px -1.7px hsl(var(--shadow-color) / 0.08),
+    0px 5.1px 3.8px -3.3px hsl(var(--shadow-color) / 0.05),
+    0px 15px 11.3px -5px hsl(var(--shadow-color) / 0.03);
+  --shadow-elevation-high: 0px 1px 0.8px hsl(var(--shadow-color) / 0.1),
+    0px 1.1px 0.8px -0.7px hsl(var(--shadow-color) / 0.09),
+    0px 2.1px 1.6px -1.4px hsl(var(--shadow-color) / 0.07),
+    0px 4.9px 3.7px -2.1px hsl(var(--shadow-color) / 0.06),
+    0px 10.1px 7.6px -2.9px hsl(var(--shadow-color) / 0.05),
+    0px 18.9px 14.2px -3.6px hsl(var(--shadow-color) / 0.04),
+    0px 31.9px 23.9px -4.3px hsl(var(--shadow-color) / 0.02),
+    0px 50px 37.5px -5px hsl(var(--shadow-color) / 0.01);
+
+  box-shadow: var(--shadow-elevation-high);
+  filter: drop-shadow(0px 0px 0.5px rgba(0 0 0 / 50%));
+}
+
+[data-code-provenance-contextmenu] button {
+  all: unset;
+  outline: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 5px;
+  border-radius: 4px;
+  font-size: 13px;
+  max-width: 50vw;
+}
+
+[data-code-provenance-contextmenu] button:focus,
+[data-code-provenance-contextmenu] button:not([disabled]):active {
+  cursor: pointer;
+  background: royalblue;
+  color: white;
+  box-shadow: var(--shadow-elevation-medium);
+}
+
+[data-code-provenance-contextmenu] button:focus code,
+[data-code-provenance-contextmenu] button:not([disabled]):active code {
+  color: white;
+}
+
+[data-code-provenance-contextmenu] button > * + * {
+  margin-top: 3px;
+}
+
+[data-code-provenance-contextmenu] button code {
+  color: royalblue;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
+
+[data-code-provenance-contextmenu] button code var {
+  background: rgba(0 0 0 / 5%);
+  cursor: help;
+  border-radius: 3px;
+  padding: 3px 6px;
+  font-style: normal;
+  font-weight: normal;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+}
+
+[data-code-provenance-contextmenu] button cite {
+  font-weight: normal;
+  font-style: normal;
+  font-size: 11px;
+  opacity: 0.5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+}
+
+[data-code-provenance-contextmenu] button cite data::after {
+  content: attr(value);
+  float: right;
+  padding-left: 15px;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+}
+
+[data-code-provenance-contextmenu-arrow] {
+  display: none;
+  position: absolute;
+  background: inherit;
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+}
+`
+
+export const ContextMenu = React.forwardRef<HTMLElement, ContextMenuProps>(
+  function ContextMenu(props, ref) {
+    const { onClose, pathModifier, active, resolveSources } = props
+
+    const [target, setTarget] = React.useState<HTMLElement | null>(null)
+
+    const arrowRef = React.useRef<HTMLDivElement | null>(null)
+
+    const [activeIndex, setActiveIndex] = React.useState<number | null>(null)
+
+    const [open, setOpen] = React.useState(false)
+    const [entries, setEntries] = React.useState<
+      Array<{ instance: any; source: SourceLocation }>
+    >([])
+    const [resolving, setResolving] = React.useState(false)
+    const [failure, setFailure] = React.useState('')
+
+    React.useEffect(() => {
+      if (!active) setOpen(false)
+    }, [active])
+
+    React.useEffect(() => {
+      if (!open || !target) return
+      let cancelled = false
+      setEntries([])
+      setResolving(true)
+      setFailure('')
+      resolveSources?.(getReactInstancesForElement(target))
+        .then((nextEntries) => {
+          if (!cancelled) {
+            setEntries(nextEntries)
+            setResolving(false)
+          }
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            setFailure((error as Error).message)
+            setResolving(false)
+          }
+        })
+      return () => {
+        cancelled = true
+      }
+    }, [open, target, resolveSources])
+
+    const listItemsRef = React.useRef<Array<HTMLButtonElement | null>>([])
+
+    const {
+      x,
+      y,
+      reference,
+      floating,
+      strategy,
+      refs,
+      update,
+      context,
+      placement,
+      middlewareData,
+    } = useFloating({
+      open,
+      onOpenChange(open) {
+        setOpen(open)
+
+        if (!open) onClose?.()
+      },
+      middleware: [
+        offset({ mainAxis: 5, alignmentAxis: 4 }),
+        flip(),
+        shift(),
+        arrow({ element: arrowRef }),
+      ],
+      placement: 'right',
+    })
+
+    const arrowData = middlewareData.arrow as
+      | { x?: number; y?: number }
+      | undefined
+    const arrowX = arrowData?.x
+    const arrowY = arrowData?.y
+
+    const { getFloatingProps, getItemProps } = useInteractions([
+      useRole(context, { role: 'menu' }),
+      useDismiss(context),
+      useListNavigation(context, {
+        listRef: listItemsRef,
+        activeIndex,
+        onNavigate: setActiveIndex,
+        focusItemOnOpen: false,
+      }),
+    ])
+
+    React.useEffect(() => {
+      if (open && refs.reference.current && refs.floating.current) {
+        return autoUpdate(refs.reference.current, refs.floating.current, update)
+      }
+    }, [open, update, refs.reference, refs.floating])
+
+    const mergedReferenceRef = React.useMemo(
+      () => mergeRefs([ref, reference]),
+      [reference, ref],
+    )
+
+    React.useEffect(() => {
+      function onContextMenu(e: MouseEvent) {
+        if (!e.altKey && !active) {
+          return
+        }
+        if (
+          e.target instanceof Element &&
+          e.target.closest('[data-code-provenance-ignore]')
+        )
+          return
+
+        e.preventDefault()
+        setEntries([])
+        setFailure('')
+        setResolving(true)
+        setActiveIndex(null)
+        mergedReferenceRef({
+          getBoundingClientRect() {
+            return {
+              x: e.clientX,
+              y: e.clientY,
+              width: 0,
+              height: 0,
+              top: e.clientY,
+              right: e.clientX,
+              bottom: e.clientY,
+              left: e.clientX,
+            }
+          },
+        })
+
+        setOpen(true)
+
+        if (e.target instanceof HTMLElement) setTarget(e.target)
+      }
+
+      document.addEventListener('contextmenu', onContextMenu, { capture: true })
+      return () => {
+        document.removeEventListener('contextmenu', onContextMenu, {
+          capture: true,
+        })
+      }
+    }, [active, mergedReferenceRef])
+
+    React.useLayoutEffect(() => {
+      if (open) {
+        refs.floating.current?.focus()
+      }
+    }, [open, refs.floating])
+
+    React.useLayoutEffect(() => {
+      if (!arrowRef.current) return
+
+      const staticSide = {
+        top: 'bottom',
+        right: 'left',
+        bottom: 'top',
+        left: 'right',
+      }[placement.split('-')[0]]
+
+      Object.assign(arrowRef.current.style, {
+        display: 'block',
+        left: arrowX != null ? `${arrowX}px` : '',
+        top: arrowY != null ? `${arrowY}px` : '',
+        right: '',
+        bottom: '',
+        [staticSide as string]: '-4px',
+      })
+    }, [arrowX, arrowY, placement])
+
+    if (!target) {
+      return null
+    }
+
+    return (
+      <>
+        <style>{contextMenuStyle}</style>
+
+        {open && (
+          <FloatingOverlay
+            {...{
+              'data-code-provenance-overlay': '',
+              'data-code-provenance-ignore': '',
+            }}
+            lockScroll
+          >
+            <FloatingFocusManager context={context}>
+              <dialog
+                {...getFloatingProps({
+                  ref: floating,
+                  style: {
+                    position: strategy,
+                    top: y ?? '',
+                    left: x ?? '',
+                  },
+                })}
+                data-code-provenance-contextmenu=""
+                onClose={() => {
+                  onClose?.()
+                  setOpen(false)
+                }}
+                open
+              >
+                <form method="dialog">
+                  {resolving && <p role="status">正在解析组件源码位置…</p>}
+                  {!resolving && entries.length === 0 && (
+                    <p role="status">
+                      {failure ||
+                        '没有找到可映射的源码位置。请确认开发调试信息与 source map 可用。'}
+                    </p>
+                  )}
+                  {entries.map(({ instance, source }, i) => {
+                    const name = getDisplayNameForInstance(instance)
+                    const path = getPathToSource(source, pathModifier)
+                    const props = getPropsForInstance(instance)
+
+                    return (
+                      <button
+                        {...getItemProps({
+                          role: 'menuitem',
+                          onClick(event: React.MouseEvent) {
+                            event.preventDefault()
+                            onClose?.(source)
+                            setOpen(false)
+                          },
+                          ref(node: HTMLButtonElement | null) {
+                            listItemsRef.current[i] = node
+                          },
+                        })}
+                        key={i}
+                        name="path"
+                        type="submit"
+                        value={path}
+                      >
+                        <code>
+                          {'<'}
+                          {name}
+                          {Object.entries(props).map(([prop, value]) => (
+                            <React.Fragment key={prop}>
+                              {' '}
+                              <var title={String(value)}>{prop}</var>
+                            </React.Fragment>
+                          ))}
+                          {'>'}
+                        </code>
+                        <cite>
+                          <data
+                            value={`${source.lineNumber}:${source.columnNumber}`}
+                          >
+                            {source.fileName.replace(/.*(src|pages)/, '$1')}
+                          </data>
+                        </cite>
+                      </button>
+                    )
+                  })}
+                </form>
+
+                <div data-code-provenance-contextmenu-arrow="" ref={arrowRef} />
+              </dialog>
+            </FloatingFocusManager>
+          </FloatingOverlay>
+        )}
+      </>
+    )
+  },
+)
