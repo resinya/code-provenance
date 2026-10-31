@@ -17,6 +17,8 @@
 
 在浏览器中 <kbd>Option+Click</kbd> 页面上的 React 组件，直接在编辑器中打开对应的源码文件。
 
+Windows 使用 <kbd>Alt+Click</kbd>，普通单击不会触发源码定位。
+
 支持 VS Code、VS Code Insiders、Cursor、TRAE（国际版 / 国内版）和 IntelliJ IDEA。
 浏览器注入面板可直接切换编辑器；npm 接入通过 `editor` 属性选择。
 
@@ -80,5 +82,10 @@ pnpm dev
 
 `pnpm build` 会先编译 `packages/code-provenance`（TypeScript → `dist/`），
 示例项目与浏览器注入工具都依赖该编译产物。
+
+两个示例默认打开普通 VS Code。要切换编辑器，修改 `apps/cra/.env.local` 中的
+`REACT_APP_CP_EDITOR` 或 `apps/next/.env.local` 中的 `NEXT_PUBLIC_CP_EDITOR`，
+然后重启对应开发服务。编辑器协议必须已在本机注册；例如 `vscode-insiders`
+需要安装 VS Code Insiders，普通 VS Code 使用 `vscode`。首次跳转时允许浏览器打开编辑器。
 
 使用方式与详细配置见 [packages/code-provenance/README.md](packages/code-provenance/README.md)。
