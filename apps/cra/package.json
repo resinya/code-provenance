@@ -36,6 +36,6 @@
     ]
   },
   "devDependencies": {
-    "code-provenance": "workspace:*"
+    "@resinya/code-provenance": "workspace:*"
   }
 }

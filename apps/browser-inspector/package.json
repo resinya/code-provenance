@@ -8,7 +8,7 @@
     "test": "node --test"
   },
   "dependencies": {
-    "code-provenance": "workspace:*",
+    "@resinya/code-provenance": "workspace:*",
     "react": "18.1.0",
     "react-dom": "18.1.0"
   },

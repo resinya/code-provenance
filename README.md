@@ -47,7 +47,7 @@
 
 ### 方式一：作为 npm 包集成到项目中
 
-在目标项目里安装 `code-provenance` 并在入口挂载 `<CodeProvenance />`，
+在目标项目里安装 `@resinya/code-provenance` 并在入口挂载 `<CodeProvenance />`，
 开发环境下 <kbd>Option+Click</kbd> 组件即可跳转源码；生产构建会被 tree-shaking 自动移除。
 适合**自己拥有源码、长期启用**的项目。
 

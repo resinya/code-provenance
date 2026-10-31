@@ -15,25 +15,25 @@
 ## 安装
 
 ```shell
-npm install code-provenance
+npm install @resinya/code-provenance
 ```
 
 ```shell
-pnpm add code-provenance
+pnpm add @resinya/code-provenance
 ```
 
 ```shell
-yarn add code-provenance
+yarn add @resinya/code-provenance
 ```
 
-虽然 `code-provenance` 写在 `dependencies` 里，但 [tree-shaking](https://esbuild.github.io/api/#tree-shaking) 会在 `production` 构建中把它完全移除。
+虽然 `@resinya/code-provenance` 写在 `dependencies` 里，但 [tree-shaking](https://esbuild.github.io/api/#tree-shaking) 会在 `production` 构建中把它完全移除。
 
 ## 使用
 
 ### Create React App
 
 ```diff
-+import { CodeProvenance } from 'code-provenance';
++import { CodeProvenance } from '@resinya/code-provenance';
  import React from 'react';
  import ReactDOM from 'react-dom/client';
  import './index.css';
@@ -50,7 +50,7 @@ yarn add code-provenance
 ### Next.js
 
 ```diff
-+import { CodeProvenance } from 'code-provenance'
++import { CodeProvenance } from '@resinya/code-provenance'
  import type { AppProps } from 'next/app'
  import '../styles/globals.css'
 
@@ -66,7 +66,7 @@ yarn add code-provenance
 ### Vite
 
 ```diff
-+import { CodeProvenance } from "code-provenance";
++import { CodeProvenance } from "@resinya/code-provenance";
  import React from "react";
  import ReactDOM from "react-dom/client";
  import App from "./App";
@@ -102,7 +102,7 @@ module.exports = {
 src/theme/Root.js：
 
 ```js
-import { CodeProvenance } from 'code-provenance';
+import { CodeProvenance } from '@resinya/code-provenance';
 import React from 'react';
 
 // 默认实现，可按需自定义

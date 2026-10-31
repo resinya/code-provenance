@@ -1,4 +1,4 @@
-import { CodeProvenance } from 'code-provenance'
+import { CodeProvenance } from '@resinya/code-provenance'
 import { createElement } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
@@ -20,12 +20,14 @@ function createInspector() {
 
   function render() {
     flushSync(() => {
-      root.render(createElement(CodeProvenance, {
-        ...options,
-        portalId: `${hostId}-portal`,
-        active: selecting,
-        onStatus: (message) => panel.setMessage(message),
-      }))
+      root.render(
+        createElement(CodeProvenance, {
+          ...options,
+          portalId: `${hostId}-portal`,
+          active: selecting,
+          onStatus: (message) => panel.setMessage(message),
+        }),
+      )
     })
     panel.setActive(selecting)
     panel.setEditor(options)
@@ -37,12 +39,16 @@ function createInspector() {
     get mounted() {
       return Boolean(root)
     },
-    get selecting() { return selecting },
+    get selecting() {
+      return selecting
+    },
     select() {
       if (!root) api.mount()
       selecting = true
       render()
-      panel.setMessage('选择中：移动到页面元素，单击打开源码，右键选择上层组件。')
+      panel.setMessage(
+        '选择中：移动到页面元素，单击打开源码，右键选择上层组件。',
+      )
       return api
     },
     pause() {
@@ -71,11 +77,19 @@ function createInspector() {
       if (pathModifier !== undefined && typeof pathModifier !== 'function') {
         throw new TypeError('pathModifier must be a function')
       }
-      if (projectRoot !== undefined && (typeof projectRoot !== 'string' ||
-          !/^(?:[a-z]:[\\/]|\/|\\\\)/i.test(projectRoot))) {
-        throw new TypeError('projectRoot must be an absolute local project path')
+      if (
+        projectRoot !== undefined &&
+        (typeof projectRoot !== 'string' ||
+          !/^(?:[a-z]:[\\/]|\/|\\\\)/i.test(projectRoot))
+      ) {
+        throw new TypeError(
+          'projectRoot must be an absolute local project path',
+        )
       }
-      if (projectName !== undefined && (typeof projectName !== 'string' || !projectName.trim())) {
+      if (
+        projectName !== undefined &&
+        (typeof projectName !== 'string' || !projectName.trim())
+      ) {
         throw new TypeError('projectName must be a non-empty IDEA project name')
       }
       if (!document.body) {
@@ -94,14 +108,17 @@ function createInspector() {
         const previousBodyState = body.getAttribute(bodyAttribute)
         const previousTargets = Array.from(
           document.querySelectorAll(`[${targetAttribute}]`),
-          (element) => [element, element.getAttribute(targetAttribute)]
+          (element) => [element, element.getAttribute(targetAttribute)],
         )
         restoreIndicators = () => {
-          document.querySelectorAll(`[${targetAttribute}]`).forEach((element) => {
-            element.removeAttribute(targetAttribute)
-          })
+          document
+            .querySelectorAll(`[${targetAttribute}]`)
+            .forEach((element) => {
+              element.removeAttribute(targetAttribute)
+            })
           previousTargets.forEach(([element, value]) => {
-            if (element.isConnected) element.setAttribute(targetAttribute, value)
+            if (element.isConnected)
+              element.setAttribute(targetAttribute, value)
           })
           if (previousBodyState === null) body.removeAttribute(bodyAttribute)
           else body.setAttribute(bodyAttribute, previousBodyState)
@@ -114,13 +131,15 @@ function createInspector() {
         const portal = document.createElement('div')
         portal.id = `${hostId}-portal`
         panel = createPanel({
-          onToggle: () => selecting ? api.pause() : api.select(),
+          onToggle: () => (selecting ? api.pause() : api.select()),
           onClose: () => api.unmount(),
           onEditorChange: (editor) => {
             api.mount({ editor })
-            panel.setMessage(editor === 'idea'
-              ? '已切换到 IDEA。请确保已安装 JetBrains Toolbox，并配置本机 projectRoot。'
-              : '已切换编辑器，下一次选择源码时生效。')
+            panel.setMessage(
+              editor === 'idea'
+                ? '已切换到 IDEA。请确保已安装 JetBrains Toolbox，并配置本机 projectRoot。'
+                : '已切换编辑器，下一次选择源码时生效。',
+            )
           },
         })
         host.append(mountPoint, portal, panel.element)

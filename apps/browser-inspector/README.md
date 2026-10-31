@@ -4,7 +4,7 @@
 目标项目无需添加依赖、修改入口、Vite 配置或锁文件。
 
 > 如果目标项目是你自己的项目、可以修改源码，
-> 更推荐直接安装 npm 包 `code-provenance` 并挂载 `<CodeProvenance />`，
+> 更推荐直接安装 npm 包 `@resinya/code-provenance` 并挂载 `<CodeProvenance />`，
 > 接入方式见 [packages/code-provenance/README.md](../../packages/code-provenance/README.md)。
 
 ## 准备和启动

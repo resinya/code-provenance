@@ -1,4 +1,4 @@
-import { CodeProvenance } from 'code-provenance';
+import { CodeProvenance } from '@resinya/code-provenance';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

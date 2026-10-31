@@ -1,4 +1,4 @@
-import { CodeProvenance } from 'code-provenance'
+import { CodeProvenance } from '@resinya/code-provenance'
 import type { AppProps } from 'next/app'
 
 import '../styles/globals.css'
